@@ -393,7 +393,7 @@ async def default_handler(message: types.Message):
             "I fell asleep due to user inactivity... Now I'm awake, let's start from scratch!"
         )
     )
-    await NSTInput.waiting_for_content.set()
+    await cmd_start(message)
 
 
 async def get_and_send_styled_image(
