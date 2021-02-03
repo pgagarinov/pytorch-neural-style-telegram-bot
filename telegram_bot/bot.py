@@ -388,13 +388,12 @@ async def default_content_handler(message: types.Message):
 
 @dp.message_handler()
 async def default_handler(message: types.Message):
-    await NSTInput.waiting_for_content.set()
     await message.reply(
         (
-            "Please upload an image with content to"
-            + " which stylization is to be applied"
+            "I fell asleep due to user inactivity... Now I'm awake, let's start from scratch!"
         )
     )
+    await NSTInput.waiting_for_content.set()
 
 
 async def get_and_send_styled_image(
@@ -520,6 +519,9 @@ async def on_shutdown(dp):
 
 
 if __name__ == "__main__":
+
+    logging.info(f'DEFAULT_FAST_DEV_RUN = {DEFAULT_FAST_DEV_RUN}')
+
     start_webhook(
         dispatcher=dp,
         webhook_path=WEBHOOK_PATH,
