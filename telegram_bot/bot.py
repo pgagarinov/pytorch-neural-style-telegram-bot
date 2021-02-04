@@ -154,8 +154,8 @@ async def cmd_help(message: types.Message):
 
 
 @dp.message_handler(commands=["fast_dev_run_true", "fast_dev_run_false"], state="*")
-async def cmd_fast_dev_run(message: types.Message, context: FSMContext):
-    async with context.proxy() as data:
+async def cmd_fast_dev_run(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
         data["fast_dev_run"] = message.get_command().lower() == "/fast_dev_run_true"
 
 
@@ -234,13 +234,13 @@ async def wrong_content_handler(message: types.Message):
     state=[NSTInput.waiting_for_style, NSTInput.waiting_for_additional_styles],
     content_types=[ContentType.PHOTO, ContentType.DOCUMENT],
 )
-async def style_image_handler(message: types.Message, context: FSMContext):
+async def style_image_handler(message: types.Message, state: FSMContext):
     """
     Upload style image
     """
     image_url = await get_image_url_from_message(message)
     if image_url:
-        async with context.proxy() as data:
+        async with state.proxy() as data:
             if "style" not in data:
                 data["style"] = []
             data["style"].append(image_url)
