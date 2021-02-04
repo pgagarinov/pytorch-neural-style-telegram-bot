@@ -26,7 +26,7 @@ WEBHOOK_URL = urljoin(WEBHOOK_HOST, WEBHOOK_PATH)
 WEBAPP_HOST = "0.0.0.0"  # or ip
 WEBAPP_PORT = os.environ["PORT"]
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
@@ -42,8 +42,12 @@ class NSTInput(StatesGroup):
 
 
 READY_STYLES = {
-    "Cezanne": "style_cezanne_pretrained",
-    "Ukiyoe": "style_ukiyoe_pretrained",
+    "Cezanne": "style_cezanne",
+    "Ukiyoe": "style_ukiyoe",
+    "Monet": "style_monet",
+    "Vangogh": "style_vangogh",
+    "Summer2Winter": "summer2winter_yosemite",
+    "Winter2Supper": "winter2summer_yosemite",
 }
 
 
@@ -68,7 +72,7 @@ COMMAND_NAMES_LIST = [
     "/fast_dev_run_false",
 ]
 
-DEFAULT_FAST_DEV_RUN = bool(os.getenv("DEFAULT_FAST_DEV_RUN", "True") == "True")
+DEFAULT_FAST_DEV_RUN = os.getenv("DEFAULT_FAST_DEV_RUN", "True") == "True"
 
 AUTHOR_CONTACT = os.getenv("AUTHOR_CONTACT", "author")
 
@@ -525,7 +529,7 @@ async def on_shutdown(dp):
 
 if __name__ == "__main__":
 
-    logging.info(f'DEFAULT_FAST_DEV_RUN = {DEFAULT_FAST_DEV_RUN}')
+    logging.info(f"DEFAULT_FAST_DEV_RUN = {DEFAULT_FAST_DEV_RUN}")
 
     start_webhook(
         dispatcher=dp,
