@@ -281,7 +281,7 @@ async def style_name_handler(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         content_url = data["content_url"]
         style_name = READY_STYLES[message.text]
-        data["style"] = style_name
+        # data["style"] = style_name
         fast_dev_run = data["fast_dev_run"]
         for key in ("content_url", "style"):
             data.pop(key, None)
@@ -289,17 +289,24 @@ async def style_name_handler(message: types.Message, state: FSMContext):
             f"Selected style is {message.text}, performing the stylization...",
             reply_markup=types.ReplyKeyboardRemove(),
         )
+        """
         asyncio.create_task(
             process_cyclegan(
                 message.chat.id, state, fast_dev_run, content_url, style_name
             )
         )
+        """
+        asyncio.create_task(
+            apply_style_on_ml_backend(
+                message.chat.id, state, fast_dev_run, content_url, style_name
+            )
+        )
 
 
-async def print_style_content(message):
+async def print_please_upload_styles(prefix, message):
     await message.reply(
         (
-            "Wrong style name, please try again to upload one or several images"
+            prefix + "please try again to upload one or several images"
             + " with styles to apply or choose one of ready-to-apply-styles"
             + " from the keyboard"
         )
@@ -312,12 +319,12 @@ async def print_style_content(message):
     state=NSTInput.waiting_for_style,
 )
 async def wrong_style_name_handler(message: types.Message):
-    await print_style_content(message)
+    await print_please_upload_styles("Wrong style name", message)
 
 
 @dp.message_handler(state=NSTInput.waiting_for_style, content_types=ContentType.ANY)
 async def wrong_style_other_handler(message: types.Message):
-    await print_style_content(message)
+    await print_please_upload_styles("Wrong file type", message)
 
 
 @dp.message_handler(state=NSTInput.waiting_for_additional_styles, commands="process")
@@ -336,20 +343,11 @@ async def cmd_process(message: types.Message, state: FSMContext):
             )
         )
         asyncio.create_task(
-            process_nst(
-                message.chat.id, state, fast_dev_run, content_url, style_url_list
+            apply_style_on_ml_backend(
+                message.chat.id, state, fast_dev_run, content_url,
+                "plain_nst", style_url_list=style_url_list
             )
         )
-
-
-async def print_wrong_content(message):
-    await message.reply(
-        (
-            "Wrong content, please upload another one or several style"
-            + " images or execute /process command to perform stylization"
-            + " of the content image with the style images that are already chosen"
-        )
-    )
 
 
 @dp.message_handler(
@@ -357,7 +355,7 @@ async def print_wrong_content(message):
     content_types=ContentType.ANY,
 )
 async def wrong_add_style_other_handler(message: types.Message):
-    await print_wrong_content(message)
+    await print_please_upload_styles("Wrong file type", message)
 
 
 @dp.message_handler(
@@ -365,7 +363,7 @@ async def wrong_add_style_other_handler(message: types.Message):
     state=NSTInput.waiting_for_additional_styles,
 )
 async def wrong_add_style_handler(message: types.Message):
-    await print_wrong_content(message)
+    await print_please_upload_styles("Wrong style name", message)
 
 
 async def print_style_in_progress(message):
@@ -399,7 +397,8 @@ async def default_content_handler(message: types.Message):
 async def default_handler(message: types.Message):
     await message.reply(
         (
-            "I fell asleep due to user inactivity... Now I'm awake, let's start from scratch!"
+            "I fell asleep due to user inactivity...and forgot everything(..."
+            + " Now I'm awake, let's start from scratch!"
         )
     )
     await go_to_waiting_for_content(message)
@@ -431,19 +430,14 @@ async def get_and_send_styled_image(
             except Exception as e:
                 logging.error(e)
 
-
+"""
 async def process_cyclegan(chat_id, state, fast_dev_run, content_url, style_name):
     try:
         raise Exception("Not yet implemented!")
     except Exception as e:
         logging.error(e)
-        await bot.send_message(
-            chat_id,
-            (
-                "Stylization failed due to some reason, possibly inference"
-                + "infrastructure is down, please contact {AUTHOR_CONTACT}"
-            ),
-        )
+        await print_ml_server_error(chat_id)
+
     await state.set_state(NSTInput.waiting_for_content)
     await bot.send_message(
         chat_id,
@@ -452,9 +446,19 @@ async def process_cyclegan(chat_id, state, fast_dev_run, content_url, style_name
             + " with content to which stylization is to be applied"
         ),
     )
+"""
+
+async def print_ml_server_error(chat_id):
+    await bot.send_message(
+        chat_id,
+        (
+            "Stylization failed due to some reason, possibly inference"
+            + f"infrastructure is down, please contact {AUTHOR_CONTACT}"
+        ),
+    )
 
 
-async def process_nst(chat_id, state, fast_dev_run, content_url, style_url_list):
+async def apply_style_on_ml_backend(chat_id, state, fast_dev_run, content_url, model_name, style_url_list=None):
     try:
         prefix_str = f"s3://{S3_BUCKET_WITH_RESULTS_NAME}/{S3_RESULTS_PREFIX}"
         uuid_str = uuid.uuid4().hex
@@ -467,11 +471,14 @@ async def process_nst(chat_id, state, fast_dev_run, content_url, style_url_list)
             param_dict = {
                 "FAST_DEV_RUN": fast_dev_run,
                 "CONTENT_IMAGE_PATH_OR_URL": content_url,
-                "STYLE_IMAGE_PATH_OR_URL_LIST": style_url_list,
                 "STYLED_IMAGE_PATH_OR_URL": styled_image_path,
                 "RESULTED_NOTEBOOK_PATH_OR_URL": resulted_notebook_path,
-                "MODEL_NAME": "plain_nst",
+                "MODEL_NAME": model_name,
             }
+
+            if style_url_list is not None:
+                param_dict["STYLE_IMAGE_PATH_OR_URL_LIST"] = style_url_list
+
             logging.info(param_dict)
             resp = await session.get(
                 NST_ENDPOINT,
@@ -490,13 +497,8 @@ async def process_nst(chat_id, state, fast_dev_run, content_url, style_url_list)
         )
     except Exception as e:
         logging.error(e)
-        await bot.send_message(
-            chat_id,
-            (
-                "Stylization failed due to some reason, possibly inference"
-                + f"infrastructure is down, please contact {AUTHOR_CONTACT}"
-            ),
-        )
+        await print_ml_server_error(chat_id)
+
     await state.set_state(NSTInput.waiting_for_content)
     await bot.send_message(
         chat_id,
