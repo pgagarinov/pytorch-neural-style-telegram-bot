@@ -74,11 +74,11 @@ AUTHOR_CONTACT = os.getenv("AUTHOR_CONTACT", "author")
 
 
 @dp.message_handler(commands="start", state="*")
-async def cmd_start(message: types.Message, context: FSMContext):
+async def cmd_start(message: types.Message, state: FSMContext):
     """
     Conversation's entry point
     """
-    current_state = await context.get_state()
+    current_state = await state.get_state()
     if current_state is not None and not current_state.endswith("waiting_for_content"):
         if current_state.endswith("waiting_for_style"):
             what_was_done_str = "uploaded content image"
@@ -111,11 +111,11 @@ async def go_to_waiting_for_content(message):
 
 
 @dp.message_handler(commands="cancel", state="*")
-async def cmd_cancel(message: types.Message, context: FSMContext):
+async def cmd_cancel(message: types.Message, state: FSMContext):
     """
     Allow user to cancel any action
     """
-    current_state = await context.get_state()
+    current_state = await state.get_state()
     if current_state is None:
         return
     elif current_state.endswith("waiting_for_content"):
@@ -181,13 +181,13 @@ async def get_image_url_from_message(message: types.Message):
     state=NSTInput.waiting_for_content,
     content_types=[ContentType.PHOTO, ContentType.DOCUMENT],
 )
-async def content_image_handler(message: types.Message, context: FSMContext):
+async def content_image_handler(message: types.Message, state: FSMContext):
     """
     Upload content image
     """
     image_url = await get_image_url_from_message(message)
     if image_url:
-        async with context.proxy() as data:
+        async with state.proxy() as data:
             data["content_url"] = image_url
             if "fast_dev_run" not in data:
                 data["fast_dev_run"] = DEFAULT_FAST_DEV_RUN
@@ -269,12 +269,12 @@ async def style_image_handler(message: types.Message, context: FSMContext):
     lambda message: message.text in READY_STYLE_NAMES_LIST,
     state=NSTInput.waiting_for_style,
 )
-async def style_name_handler(message: types.Message, context: FSMContext):
+async def style_name_handler(message: types.Message, state: FSMContext):
     """
     Choose name of style from ready-to-apply styles
     """
     await NSTInput.waiting_for_output.set()
-    async with context.proxy() as data:
+    async with state.proxy() as data:
         content_url = data["content_url"]
         style_name = READY_STYLES[message.text]
         data["style"] = style_name
@@ -287,7 +287,7 @@ async def style_name_handler(message: types.Message, context: FSMContext):
         )
         asyncio.create_task(
             process_cyclegan(
-                message.chat.id, context, fast_dev_run, content_url, style_name
+                message.chat.id, state, fast_dev_run, content_url, style_name
             )
         )
 
@@ -317,9 +317,9 @@ async def wrong_style_other_handler(message: types.Message):
 
 
 @dp.message_handler(state=NSTInput.waiting_for_additional_styles, commands="process")
-async def cmd_process(message: types.Message, context: FSMContext):
+async def cmd_process(message: types.Message, state: FSMContext):
     await NSTInput.waiting_for_output.set()
-    async with context.proxy() as data:
+    async with state.proxy() as data:
         content_url = data["content_url"]
         style_url_list = data["style"]
         fast_dev_run = data["fast_dev_run"]
@@ -333,7 +333,7 @@ async def cmd_process(message: types.Message, context: FSMContext):
         )
         asyncio.create_task(
             process_nst(
-                message.chat.id, context, fast_dev_run, content_url, style_url_list
+                message.chat.id, state, fast_dev_run, content_url, style_url_list
             )
         )
 
