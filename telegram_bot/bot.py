@@ -282,7 +282,7 @@ async def style_name_handler(message: types.Message, state: FSMContext):
         for key in ("content_url", "style"):
             data.pop(key, None)
         await message.reply(
-            f"Chosen style is {message.text}, performing the stylization...",
+            f"Selected style is {message.text}, performing the stylization...",
             reply_markup=types.ReplyKeyboardRemove(),
         )
         asyncio.create_task(
