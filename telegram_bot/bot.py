@@ -68,7 +68,7 @@ COMMAND_NAMES_LIST = [
     "/fast_dev_run_false",
 ]
 
-DEFAULT_FAST_DEV_RUN = bool(os.getenv("DEFAULT_FAST_DEV_RUN", True))
+DEFAULT_FAST_DEV_RUN = bool(os.getenv("DEFAULT_FAST_DEV_RUN", "True") == "True")
 
 AUTHOR_CONTACT = os.getenv("AUTHOR_CONTACT", "author")
 
