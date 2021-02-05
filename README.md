@@ -34,5 +34,3 @@
   Isola, Phillip and Zhu, Jun-Yan and Zhou, Tinghui and Efros, Alexei A,
   Computer Vision and Pattern Recognition (CVPR), 2017 IEEE Conference on,
   2017
-
-## Contacts
