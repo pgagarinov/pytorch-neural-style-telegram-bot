@@ -294,7 +294,7 @@ async def style_image_handler(message: types.Message, state: FSMContext):
         await message.reply(
             (
                 "Please upload more style images (for multi-style transfer)"
-                + f" or press {PROCESS_BUTTON_NAME}"
+                + f' or press "{PROCESS_BUTTON_NAME}"'
                 + " command to perform stylization of the content image with"
                 + " the style images that are already uploaded"
             ),
@@ -310,7 +310,7 @@ async def style_image_handler(message: types.Message, state: FSMContext):
             await message.reply(try_again_msg)
         else:
             await message.reply(
-                try_again_msg + f" or press {PROCESS_BUTTON_NAME}",
+                try_again_msg + f' or press "{PROCESS_BUTTON_NAME}"',
                 reply_markup=process_markup,
             )
 
