@@ -53,7 +53,7 @@ PROCESS_ACTION = "process"
 style_factory = CallbackData("style", "action", "style_name")
 
 PLAIN_NST_ACTION = "plain_nst"
-PLAIN_NST_STYLE_NAME = "Plain NST, requires 1 or more style image"
+PLAIN_NST_STYLE_NAME = "Multi-style NST, requires at least 1 image"
 
 ALL_STYLES_DICT = {
     PLAIN_NST_STYLE_NAME: PLAIN_NST_ACTION,
@@ -291,7 +291,7 @@ async def style_first_image_handler(message: types.Message, state: FSMContext):
             reply_markup=process_markup,
         )
     else:
-        current_state = state.get_state()
+        current_state = await state.get_state()
         if current_state.endswith('waiting_for_style'):
             await message.reply(
                 (
