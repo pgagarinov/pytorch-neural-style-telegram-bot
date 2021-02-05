@@ -136,14 +136,15 @@ async def cmd_start(message: types.Message, state: FSMContext):
         )
         return
 
-    await go_to_waiting_for_content(message)
+    await go_to_waiting_for_content(message.chat.id)
 
 
-async def go_to_waiting_for_content(message):
+async def go_to_waiting_for_content(chat_id):
     # Set state
     await NSTInput.waiting_for_content.set()
 
-    await message.reply(
+    await bot.send_message(
+        chat_id,
         (
             "Please upload an image with content"
             + " to which stylization is to be applied"
@@ -474,7 +475,7 @@ async def default_handler(message: types.Message):
             + " Now I'm awake, let's start from scratch!"
         )
     )
-    await go_to_waiting_for_content(message)
+    await go_to_waiting_for_content(message.chat.id)
 
 
 async def get_and_send_styled_image(
