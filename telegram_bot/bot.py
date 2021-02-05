@@ -1,8 +1,10 @@
 import asyncio
 import logging
 import os
+import typing
 import uuid
 from urllib.parse import urljoin
+
 import aioboto3
 import aiohttp
 from aiogram import Bot, types
@@ -10,12 +12,10 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import Dispatcher, FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import File
+from aiogram.types import File, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types.message import ContentType
-from aiogram.utils.executor import start_webhook
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
-import typing
+from aiogram.utils.executor import start_webhook
 
 API_TOKEN = os.environ["API_TOKEN"]
 
@@ -43,11 +43,16 @@ class NSTInput(StatesGroup):
     waiting_for_output = State()
 
 
-ready_style_markup = InlineKeyboardMarkup()
+all_style_markup = InlineKeyboardMarkup()
+plain_style_markup = InlineKeyboardMarkup()
 
-style_factory = CallbackData('style', 'action', 'style_name')
+style_factory = CallbackData("style", "action", "style_name")
 
-READY_STYLES = {
+PLAIN_NST_ACTION = "plain_nst"
+PLAIN_NST_STYLE_NAME = "Plain NST, requires 1 or more style image"
+
+ALL_STYLES_DICT = {
+    PLAIN_NST_STYLE_NAME: PLAIN_NST_ACTION,
     "Cezanne": "style_cezanne",
     "Ukiyoe": "style_ukiyoe",
     "Monet": "style_monet",
@@ -56,16 +61,24 @@ READY_STYLES = {
     "Winter2Summer": "winter2summer_yosemite",
 }
 
-READY_STYLE_NAMES_LIST = list(READY_STYLES.keys())
+READY_STYLE_ACTION_LIST = [
+    v for k, v in ALL_STYLES_DICT.items() if v != PLAIN_NST_ACTION
+]
 
-for style, style_action in READY_STYLES.items():
-    ready_style_markup.add(
+plain_style_markup.add(
+    InlineKeyboardButton(
+        PLAIN_NST_STYLE_NAME,
+        callback_data=style_factory.new(
+            action=PLAIN_NST_ACTION, style_name=PLAIN_NST_STYLE_NAME
+        ),
+    )
+)
+
+for style, style_action in ALL_STYLES_DICT.items():
+    all_style_markup.add(
         InlineKeyboardButton(
             style,
-            callback_data=style_factory.new(
-                action=style_action, 
-                style_name=style
-            ),
+            callback_data=style_factory.new(action=style_action, style_name=style),
         )
     )
 
@@ -213,7 +226,7 @@ async def content_image_handler(message: types.Message, state: FSMContext):
                 "Please upload one or several images with styles to apply"
                 + " or choose one of ready-to-apply-styles from the keyboard"
             ),
-            reply_markup=ready_style_markup,
+            reply_markup=all_style_markup,
         )
     else:
         await message.reply(
@@ -264,10 +277,11 @@ async def style_image_handler(message: types.Message, state: FSMContext):
         await message.reply(
             (
                 "Please upload more style images (for multi-style transfer)"
-                + " or execute /process"
+                + f" or press {PLAIN_NST_STYLE_NAME}"
                 + " command to perform stylization of the content image with"
                 + " the style images that are already chosen"
             ),
+            reply_markup=plain_style_markup,
         )
     else:
         await message.reply(
@@ -276,21 +290,25 @@ async def style_image_handler(message: types.Message, state: FSMContext):
                 + " to apply or choose one of ready-to-apply-styles from"
                 + " the keyboard"
             ),
-            reply_markup=ready_style_markup,
+            reply_markup=all_style_markup,
         )
 
 
-@dp.callback_query_handler(style_factory.filter(), state=NSTInput.waiting_for_style)
-async def style_name_handler(call_q: types.CallbackQuery,
-                             callback_data: typing.Dict[str, str], state: FSMContext):
+@dp.callback_query_handler(
+    style_factory.filter(action=READY_STYLE_ACTION_LIST),
+    state=NSTInput.waiting_for_style,
+)
+async def style_name_handler(
+    call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
+):
     """
     Choose name of style from ready-to-apply styles
     """
     await NSTInput.waiting_for_output.set()
     async with state.proxy() as data:
         content_url = data["content_url"]
-        style_code_name = callback_data['action']
-        style_pretty_name = callback_data['style_name']
+        style_code_name = callback_data["action"]
+        style_pretty_name = callback_data["style_name"]
         fast_dev_run = data["fast_dev_run"]
         for key in ("content_url", "style"):
             data.pop(key, None)
@@ -300,7 +318,11 @@ async def style_name_handler(call_q: types.CallbackQuery,
 
         asyncio.create_task(
             apply_style_on_ml_backend(
-                call_q.message.chat.id, state, fast_dev_run, content_url, style_code_name
+                call_q.message.chat.id,
+                state,
+                fast_dev_run,
+                content_url,
+                style_code_name,
             )
         )
 
@@ -316,6 +338,7 @@ async def print_please_upload_styles(prefix, message):
     )
 
 
+"""
 @dp.message_handler(
     lambda message: message.text not in READY_STYLE_NAMES_LIST
     and message.text.lower() not in COMMAND_NAMES_LIST,
@@ -323,6 +346,7 @@ async def print_please_upload_styles(prefix, message):
 )
 async def wrong_style_name_handler(message: types.Message):
     await print_please_upload_styles("Wrong style name", message)
+"""
 
 
 @dp.message_handler(state=NSTInput.waiting_for_style, content_types=ContentType.ANY)
@@ -330,8 +354,14 @@ async def wrong_style_other_handler(message: types.Message):
     await print_please_upload_styles("Wrong file type", message)
 
 
-@dp.message_handler(state=NSTInput.waiting_for_additional_styles, commands="process")
-async def cmd_process(message: types.Message, state: FSMContext):
+# @dp.message_handler(state=NSTInput.waiting_for_additional_styles, commands="process")
+# async def cmd_process(message: types.Message, state: FSMContext):
+@dp.callback_query_handler(
+    style_factory.filter(action=PLAIN_NST_ACTION), state=NSTInput.waiting_for_style
+)
+async def style_name_handler(
+    call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
+):
     await NSTInput.waiting_for_output.set()
     async with state.proxy() as data:
         content_url = data["content_url"]
@@ -366,7 +396,7 @@ async def wrong_add_style_other_handler(message: types.Message):
 
 
 @dp.message_handler(
-    lambda message: message.text.lower() not in COMMAND_NAMES_LIST + ["/process"],
+    lambda message: message.text.lower() not in COMMAND_NAMES_LIST,
     state=NSTInput.waiting_for_additional_styles,
 )
 async def wrong_add_style_handler(message: types.Message):
