@@ -301,7 +301,7 @@ async def print_please_upload_styles(prefix, message):
     await message.reply(
         (
             prefix
-            + "please try again to upload one or several images"
+            + " please try again to upload one or several images"
             + " with styles to apply or choose one of ready-to-apply-styles"
             + " from the keyboard"
         )
