@@ -435,7 +435,7 @@ async def print_ml_server_error(chat_id):
         chat_id,
         (
             "Stylization failed due to some reason, possibly inference"
-            + f"infrastructure is down, please contact {AUTHOR_CONTACT}"
+            + f" infrastructure is down, please contact {AUTHOR_CONTACT}"
         ),
     )
 
