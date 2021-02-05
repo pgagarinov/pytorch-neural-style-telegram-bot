@@ -11,7 +11,7 @@ ML_SERVER_DIR = pathlib.Path(__file__).parent.absolute()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-PLAIN_NST_PIPELINE_NOTEBOOK = "https://github.com/pgagarinov/pytorch-hyperlight/raw/0.2.6/products/examples/plain_simple_nst.ipynb"
+PLAIN_NST_PIPELINE_NOTEBOOK = ML_SERVER_DIR / "plain_simple_nst.ipynb"
 CYCLE_GAN_PIPELINE_NOTEBOOK = ML_SERVER_DIR / "cycle_gan_style_inference.ipynb"
 
 RESOURCES_CONFIG = {"num_gpus": 1}

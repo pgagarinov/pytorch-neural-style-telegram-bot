@@ -47,7 +47,7 @@ READY_STYLES = {
     "Monet": "style_monet",
     "Vangogh": "style_vangogh",
     "Summer2Winter": "summer2winter_yosemite",
-    "Winter2Supper": "winter2summer_yosemite",
+    "Winter2Summer": "winter2summer_yosemite",
 }
 
 
@@ -289,13 +289,7 @@ async def style_name_handler(message: types.Message, state: FSMContext):
             f"Selected style is {message.text}, performing the stylization...",
             reply_markup=types.ReplyKeyboardRemove(),
         )
-        """
-        asyncio.create_task(
-            process_cyclegan(
-                message.chat.id, state, fast_dev_run, content_url, style_name
-            )
-        )
-        """
+
         asyncio.create_task(
             apply_style_on_ml_backend(
                 message.chat.id, state, fast_dev_run, content_url, style_name
@@ -306,7 +300,8 @@ async def style_name_handler(message: types.Message, state: FSMContext):
 async def print_please_upload_styles(prefix, message):
     await message.reply(
         (
-            prefix + "please try again to upload one or several images"
+            prefix
+            + "please try again to upload one or several images"
             + " with styles to apply or choose one of ready-to-apply-styles"
             + " from the keyboard"
         )
@@ -338,14 +333,18 @@ async def cmd_process(message: types.Message, state: FSMContext):
             data.pop(key, None)
         await message.reply(
             (
-                f"Chosen are {len(style_url_list)} style images,"
-                + " performing the stylization..."
+                "Performing the stylization based on"
+                + f" {len(style_url_list)} style image(s)..."
             )
         )
         asyncio.create_task(
             apply_style_on_ml_backend(
-                message.chat.id, state, fast_dev_run, content_url,
-                "plain_nst", style_url_list=style_url_list
+                message.chat.id,
+                state,
+                fast_dev_run,
+                content_url,
+                "plain_nst",
+                style_url_list=style_url_list,
             )
         )
 
@@ -430,23 +429,6 @@ async def get_and_send_styled_image(
             except Exception as e:
                 logging.error(e)
 
-"""
-async def process_cyclegan(chat_id, state, fast_dev_run, content_url, style_name):
-    try:
-        raise Exception("Not yet implemented!")
-    except Exception as e:
-        logging.error(e)
-        await print_ml_server_error(chat_id)
-
-    await state.set_state(NSTInput.waiting_for_content)
-    await bot.send_message(
-        chat_id,
-        (
-            "To start new stylization please upload an image"
-            + " with content to which stylization is to be applied"
-        ),
-    )
-"""
 
 async def print_ml_server_error(chat_id):
     await bot.send_message(
@@ -458,7 +440,9 @@ async def print_ml_server_error(chat_id):
     )
 
 
-async def apply_style_on_ml_backend(chat_id, state, fast_dev_run, content_url, model_name, style_url_list=None):
+async def apply_style_on_ml_backend(
+    chat_id, state, fast_dev_run, content_url, model_name, style_url_list=None
+):
     try:
         prefix_str = f"s3://{S3_BUCKET_WITH_RESULTS_NAME}/{S3_RESULTS_PREFIX}"
         uuid_str = uuid.uuid4().hex
