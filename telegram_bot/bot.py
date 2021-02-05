@@ -3,7 +3,6 @@ import logging
 import os
 import uuid
 from urllib.parse import urljoin
-
 import aioboto3
 import aiohttp
 from aiogram import Bot, types
@@ -14,6 +13,9 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import File
 from aiogram.types.message import ContentType
 from aiogram.utils.executor import start_webhook
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.callback_data import CallbackData
+import typing
 
 API_TOKEN = os.environ["API_TOKEN"]
 
@@ -41,6 +43,10 @@ class NSTInput(StatesGroup):
     waiting_for_output = State()
 
 
+ready_style_markup = InlineKeyboardMarkup()
+
+style_factory = CallbackData('style', 'action')
+
 READY_STYLES = {
     "Cezanne": "style_cezanne",
     "Ukiyoe": "style_ukiyoe",
@@ -50,12 +56,15 @@ READY_STYLES = {
     "Winter2Summer": "winter2summer_yosemite",
 }
 
-
-READY_STYLES_MARKUP = types.ReplyKeyboardMarkup(
-    resize_keyboard=True, one_time_keyboard=True, selective=True
-)
 READY_STYLE_NAMES_LIST = list(READY_STYLES.keys())
-READY_STYLES_MARKUP.add(*READY_STYLE_NAMES_LIST)
+
+for style, style_action in READY_STYLES.items():
+    ready_style_markup.add(
+        InlineKeyboardButton(
+            style,
+            callback_data=style_factory.new(action=style_action),
+        )
+    )
 
 
 S3_BUCKET_WITH_RESULTS_NAME = os.environ["S3_BUCKET_WITH_RESULTS_NAME"]
@@ -140,7 +149,7 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
             "Cancelled stylization, to start new stylization please upload"
             + " an image with content to which stylization is to be applied"
         ),
-        reply_markup=types.ReplyKeyboardRemove(),
+        #  reply_markup=types.ReplyKeyboardRemove(),
     )
 
 
@@ -201,7 +210,7 @@ async def content_image_handler(message: types.Message, state: FSMContext):
                 "Please upload one or several images with styles to apply"
                 + " or choose one of ready-to-apply-styles from the keyboard"
             ),
-            reply_markup=READY_STYLES_MARKUP,
+            reply_markup=ready_style_markup,
         )
     else:
         await message.reply(
@@ -251,12 +260,12 @@ async def style_image_handler(message: types.Message, state: FSMContext):
         await NSTInput.waiting_for_additional_styles.set()
         await message.reply(
             (
-                "Please upload another one or several style images"
+                "Please upload more style images (for multi-style transfer)"
                 + " or execute /process"
                 + " command to perform stylization of the content image with"
                 + " the style images that are already chosen"
             ),
-            reply_markup=types.ReplyKeyboardRemove(),
+            # reply_markup=types.ReplyKeyboardRemove(),
         )
     else:
         await message.reply(
@@ -265,34 +274,32 @@ async def style_image_handler(message: types.Message, state: FSMContext):
                 + " to apply or choose one of ready-to-apply-styles from"
                 + " the keyboard"
             ),
-            reply_markup=READY_STYLES_MARKUP,
+            reply_markup=ready_style_markup,
         )
 
 
-@dp.message_handler(
-    lambda message: message.text in READY_STYLE_NAMES_LIST,
-    state=NSTInput.waiting_for_style,
-)
-async def style_name_handler(message: types.Message, state: FSMContext):
+@dp.callback_query_handler(style_factory.filter(), state=NSTInput.waiting_for_style)
+async def style_name_handler(call_q: types.CallbackQuery,
+                             callback_data: typing.Dict[str, str], state: FSMContext):
     """
     Choose name of style from ready-to-apply styles
     """
     await NSTInput.waiting_for_output.set()
     async with state.proxy() as data:
         content_url = data["content_url"]
-        style_name = READY_STYLES[message.text]
+        style_name = callback_data['action']
         # data["style"] = style_name
         fast_dev_run = data["fast_dev_run"]
         for key in ("content_url", "style"):
             data.pop(key, None)
-        await message.reply(
-            f"Selected style is {message.text}, performing the stylization...",
-            reply_markup=types.ReplyKeyboardRemove(),
+        await call_q.message.reply(
+            f"Selected style is {call_q.message.text}, performing the stylization...",
+            # reply_markup=types.ReplyKeyboardRemove(),
         )
 
         asyncio.create_task(
             apply_style_on_ml_backend(
-                message.chat.id, state, fast_dev_run, content_url, style_name
+                call_q.message.chat.id, state, fast_dev_run, content_url, style_name
             )
         )
 
