@@ -28,6 +28,9 @@ WEBHOOK_URL = urljoin(WEBHOOK_HOST, WEBHOOK_PATH)
 WEBAPP_HOST = "0.0.0.0"  # or ip
 WEBAPP_PORT = os.environ["PORT"]
 
+# ml server settings
+ML_SERVER_REQUEST_TIMEOUT = 1200
+
 logging.basicConfig(level=logging.DEBUG)
 
 bot = Bot(token=API_TOKEN)
@@ -47,8 +50,8 @@ class NSTInput(StatesGroup):
 all_style_markup = InlineKeyboardMarkup()
 process_markup = InlineKeyboardMarkup()
 
-PROCESS_BUTTON_NAME = "Process"
-PROCESS_ACTION = "process"
+PROCESS_BUTTON_NAME = "Apply multi-style NST"
+PROCESS_ACTION = "apply_plain_nst"
 
 style_factory = CallbackData("style", "action", "style_name")
 
@@ -74,9 +77,7 @@ cmd_factory = CallbackData("command", "action")
 process_markup.add(
     InlineKeyboardButton(
         PROCESS_BUTTON_NAME,
-        callback_data=cmd_factory.new(
-            action=PROCESS_ACTION
-        ),
+        callback_data=cmd_factory.new(action=PROCESS_ACTION),
     )
 )
 
@@ -84,7 +85,10 @@ for style, style_action in ALL_STYLES_DICT.items():
     all_style_markup.add(
         InlineKeyboardButton(
             style,
-            callback_data=style_factory.new(action=style_action, style_name=style),
+            callback_data=style_factory.new(
+                action=style_action,
+                style_name=style
+            ),
         )
     )
 
@@ -190,7 +194,10 @@ async def cmd_help(message: types.Message):
     )
 
 
-@dp.message_handler(commands=["fast_dev_run_true", "fast_dev_run_false"], state="*")
+@dp.message_handler(
+    commands=["fast_dev_run_true",
+              "fast_dev_run_false"],
+    state="*")
 async def cmd_fast_dev_run(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["fast_dev_run"] = message.get_command().lower() == "/fast_dev_run_true"
@@ -205,7 +212,9 @@ async def get_image_url_from_message(message: types.Message):
         if mime_type and mime_type.startswith("image"):
             file_id = message.document.file_id
         else:
-            await message.reply("Uploaded document is not an image as was expected")
+            await message.reply(
+                "Uploaded document is not an image as was expected"
+            )
             return None
     else:
         await message.reply("Expected an image")
@@ -230,9 +239,7 @@ async def content_image_handler(message: types.Message, state: FSMContext):
                 data["fast_dev_run"] = DEFAULT_FAST_DEV_RUN
         await NSTInput.next()
         await message.reply(
-            (
-                "Please choose the styling algorithm from the list below"
-            ),
+            ("Please choose the styling algorithm from the list below"),
             reply_markup=all_style_markup,
         )
     else:
@@ -253,7 +260,10 @@ async def print_image_expected(message):
     )
 
 
-@dp.message_handler(content_types=ContentType.ANY, state=NSTInput.waiting_for_content)
+@dp.message_handler(
+    content_types=ContentType.ANY,
+    state=NSTInput.waiting_for_content
+    )
 async def content_other_handler(message: types.Message):
     print_image_expected(message)
 
@@ -270,7 +280,7 @@ async def wrong_content_handler(message: types.Message):
     state=[NSTInput.waiting_for_style, NSTInput.waiting_for_additional_styles],
     content_types=[ContentType.PHOTO, ContentType.DOCUMENT],
 )
-async def style_first_image_handler(message: types.Message, state: FSMContext):
+async def style_image_handler(message: types.Message, state: FSMContext):
     """
     Upload style image
     """
@@ -284,28 +294,24 @@ async def style_first_image_handler(message: types.Message, state: FSMContext):
         await message.reply(
             (
                 "Please upload more style images (for multi-style transfer)"
-                + f" or press {PROCESS_ACTION}"
+                + f" or press {PROCESS_BUTTON_NAME}"
                 + " command to perform stylization of the content image with"
-                + " the style images that are already chosen"
+                + " the style images that are already uploaded"
             ),
             reply_markup=process_markup,
         )
     else:
         current_state = await state.get_state()
-        if current_state.endswith('waiting_for_style'):
-            await message.reply(
-                (
-                    "Please try again to upload one or several images with styles"
-                    + " to apply"
-                )
-            )
+        try_again_msg = (
+            "Please try again to upload one or several images with styles"
+            + " to apply"
+        )
+        if current_state.endswith("waiting_for_style"):
+            await message.reply(try_again_msg)
         else:
             await message.reply(
-                (
-                    "Please try again to upload one or several images with styles"
-                    + f" to apply or press {PROCESS_ACTION}",
-                ),
-                reply_markup=process_markup
+                try_again_msg + f" or press {PROCESS_BUTTON_NAME}",
+                reply_markup=process_markup,
             )
 
 
@@ -314,7 +320,9 @@ async def style_first_image_handler(message: types.Message, state: FSMContext):
     state=NSTInput.waiting_for_algo_select,
 )
 async def ready_style_selected_handler(
-    call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
+    call_q: types.CallbackQuery,
+    callback_data: typing.Dict[str, str],
+    state: FSMContext
 ):
     """
     Choose name of style from ready-to-apply styles
@@ -328,7 +336,10 @@ async def ready_style_selected_handler(
         for key in ("content_url", "style"):
             data.pop(key, None)
         await call_q.message.reply(
-            f"Selected style is {style_pretty_name}, performing the stylization...",
+            (
+                f"Selected style is {style_pretty_name},"
+                + " performing the stylization..."
+            )
         )
 
         asyncio.create_task(
@@ -347,9 +358,14 @@ async def ready_style_selected_handler(
     state=NSTInput.waiting_for_algo_select,
 )
 async def plain_nst_algo_selected_handler(
-    call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
+    call_q: types.CallbackQuery,
+    callback_data: typing.Dict[str, str],
+    state: FSMContext
 ):
-    await bot.send_message(call_q.from_user.id, "Please upload one or more (for multi-style transfer) images")
+    await bot.send_message(
+        call_q.from_user.id,
+        "Please upload one or more (for multi-style transfer) images",
+    )
     await NSTInput.next()
 
 
@@ -374,18 +390,22 @@ async def wrong_style_name_handler(message: types.Message):
 """
 
 
-@dp.message_handler(state=NSTInput.waiting_for_style, content_types=ContentType.ANY)
+@dp.message_handler(
+    state=NSTInput.waiting_for_style,
+    content_types=ContentType.ANY
+)
 async def wrong_style_other_handler(message: types.Message):
     await print_please_upload_styles("Wrong file type", message)
 
 
-# @dp.message_handler(state=NSTInput.waiting_for_additional_styles, commands="process")
-# async def cmd_process(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(
-    cmd_factory.filter(action=PROCESS_ACTION), state=NSTInput.waiting_for_additional_styles
+    cmd_factory.filter(action=PROCESS_ACTION),
+    state=NSTInput.waiting_for_additional_styles,
 )
 async def style_name_handler(
-    call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
+    call_q: types.CallbackQuery,
+    callback_data: typing.Dict[str, str],
+    state: FSMContext
 ):
     await NSTInput.waiting_for_output.set()
     async with state.proxy() as data:
@@ -437,7 +457,10 @@ async def print_style_in_progress(message):
     )
 
 
-@dp.message_handler(state=NSTInput.waiting_for_output, content_types=ContentType.ANY)
+@dp.message_handler(
+    state=NSTInput.waiting_for_output,
+    content_types=ContentType.ANY
+)
 async def wrong_output_other_handler(message: types.Message):
     await print_style_in_progress(message)
 
@@ -486,7 +509,8 @@ async def get_and_send_styled_image(
         if resulted_notebook_key is not None:
             try:
                 resulted_notebook_obj = await s3.Object(
-                    bucket_name=S3_BUCKET_WITH_RESULTS_NAME, key=resulted_notebook_key
+                    bucket_name=S3_BUCKET_WITH_RESULTS_NAME,
+                    key=resulted_notebook_key
                 )
                 await resulted_notebook_obj.delete()
             except Exception as e:
@@ -513,7 +537,7 @@ async def apply_style_on_ml_backend(
         styled_image_path = f"{prefix_str}/{styled_image_file_name}"
         resulted_notebook_file_name = f"resulted_notebook_{chat_id}_{uuid_str}.ipynb"
         resulted_notebook_path = f"{prefix_str}/{resulted_notebook_file_name}"
-        timeout = aiohttp.ClientTimeout(total=1200)
+        timeout = aiohttp.ClientTimeout(total=ML_SERVER_REQUEST_TIMEOUT)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             param_dict = {
                 "FAST_DEV_RUN": fast_dev_run,
