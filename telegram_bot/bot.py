@@ -176,8 +176,7 @@ async def cmd_cancel(message: types.Message, state: FSMContext):
         (
             "Cancelled stylization, to start new stylization please upload"
             + " an image with content to which stylization is to be applied"
-        ),
-        #  reply_markup=types.ReplyKeyboardRemove(),
+        )
     )
 
 
@@ -377,17 +376,6 @@ async def print_please_upload_styles(prefix, message):
             + " with styles to apply"
         )
     )
-
-
-"""
-@dp.message_handler(
-    lambda message: message.text not in READY_STYLE_NAMES_LIST
-    and message.text.lower() not in COMMAND_NAMES_LIST,
-    state=NSTInput.waiting_for_style,
-)
-async def wrong_style_name_handler(message: types.Message):
-    await print_please_upload_styles("Wrong style name", message)
-"""
 
 
 @dp.message_handler(
