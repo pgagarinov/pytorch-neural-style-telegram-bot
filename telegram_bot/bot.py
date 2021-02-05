@@ -74,7 +74,7 @@ cmd_factory = CallbackData("command", "action")
 process_markup.add(
     InlineKeyboardButton(
         PROCESS_BUTTON_NAME,
-        callback_data=style_factory.new(
+        callback_data=cmd_factory.new(
             action=PROCESS_ACTION
         ),
     )
