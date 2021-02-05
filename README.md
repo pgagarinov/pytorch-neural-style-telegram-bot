@@ -10,10 +10,23 @@
     - Cezanne
     - Ukiyoe
     - Vangogh
+    
+    The implementation is based on [pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) ![](https://img.shields.io/github/stars/junyanz/pytorch-CycleGAN-and-pix2pix.svg?style=social) and [[2]](#2), [[3]](#3)
    
  
  
  ## References
  <a id="1">[1]</a> 
- Gatys, Leon A.; Ecker, Alexander S.; Bethge, Matthias (26 August 2015). "A Neural Algorithm of Artistic Style". [arXiv:1508.06576](https://arxiv.org/abs/1508.06576) 
+ "A Neural Algorithm of Artistic Style", Gatys, Leon A.; Ecker, Alexander S.; Bethge, Matthias, 2015, [arXiv:1508.06576](https://arxiv.org/abs/1508.06576) 
 
+ <a id="2">[2]</a> 
+  "Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networkss", Zhu, Jun-Yan and Park, Taesung and Isola, Phillip and Efros, Alexei A
+    Computer Vision (ICCV), 2017 IEEE International Conference on, 2017
+}
+
+ <a id="3">[3]</a> 
+  "Image-to-Image Translation with Conditional Adversarial Networks",
+  Isola, Phillip and Zhu, Jun-Yan and Zhou, Tinghui and Efros, Alexei A,
+  Computer Vision and Pattern Recognition (CVPR), 2017 IEEE Conference on,
+  2017
+}
