@@ -4,10 +4,11 @@ import ray
 from ray import serve
 import signal
 import sys
-import pathlib
+from pathlib import Path
 
-ML_SERVER_DIR = pathlib.Path(__file__).parent.absolute()
 
+ML_SERVER_DIR = Path(__file__).parent.absolute()
+NOTEBOOK_WORKING_DIR = ML_SERVER_DIR / "_notebook_workspace"
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -37,6 +38,7 @@ def transfer_style(flask_request):
         notebook_path_or_url,
         all_param_dict["RESULTED_NOTEBOOK_PATH_OR_URL"],
         nb_param_dict,
+        cwd=NOTEBOOK_WORKING_DIR,
     )
     _ = ray.get(obj_ref)
 
@@ -54,6 +56,8 @@ if __name__ == "__main__":
 
     ray.shutdown()
     _ = ray.init(num_cpus=8, num_gpus=1)
+
+    Path.mkdir(NOTEBOOK_WORKING_DIR, exist_ok=True)
 
     HTTP_OPTIONS = {"host": "0.0.0.0", "port": 8000}
 
