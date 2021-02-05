@@ -15,7 +15,7 @@
     - Ukiyoe
     - Vangogh
     
-    The implementation is based on [pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) ![](https://img.shields.io/github/stars/junyanz/pytorch-CycleGAN-and-pix2pix.svg?style=social) and [[2]](#2), [[3]](#3).
+    The corresponding image processing pipeline is implemented in [CycleGan Style transfer notebook](https://github.com/pgagarinov/dls-style-telegram-bot/blob/main/ml_server/cycle_gan_style_inference.ipynb) and is based on [pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) ![](https://img.shields.io/github/stars/junyanz/pytorch-CycleGAN-and-pix2pix.svg?style=social) and [[2]](#2), [[3]](#3).
  
  ### No state persistency
  The bot uses Finite State Machine with in-memory storage to keep the running costs low. Some cloud providers, like Heroku, can stop the bot after some periods of inactivity. This causes the bot lose its state. This is not critical as there is no any important information in the time of inactivity between separate user interaction sessions. When the bot looses its state it notifies a user about it asking for a content image regardless of what happened before the period of inactivity.
