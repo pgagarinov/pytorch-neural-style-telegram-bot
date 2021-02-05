@@ -45,7 +45,7 @@ class NSTInput(StatesGroup):
 
 ready_style_markup = InlineKeyboardMarkup()
 
-style_factory = CallbackData('style', 'action')
+style_factory = CallbackData('style', 'action', 'style_name')
 
 READY_STYLES = {
     "Cezanne": "style_cezanne",
@@ -62,7 +62,10 @@ for style, style_action in READY_STYLES.items():
     ready_style_markup.add(
         InlineKeyboardButton(
             style,
-            callback_data=style_factory.new(action=style_action),
+            callback_data=style_factory.new(
+                action=style_action, 
+                style_name=style
+            ),
         )
     )
 
@@ -265,7 +268,6 @@ async def style_image_handler(message: types.Message, state: FSMContext):
                 + " command to perform stylization of the content image with"
                 + " the style images that are already chosen"
             ),
-            # reply_markup=types.ReplyKeyboardRemove(),
         )
     else:
         await message.reply(
@@ -287,19 +289,18 @@ async def style_name_handler(call_q: types.CallbackQuery,
     await NSTInput.waiting_for_output.set()
     async with state.proxy() as data:
         content_url = data["content_url"]
-        style_name = callback_data['action']
-        # data["style"] = style_name
+        style_code_name = callback_data['action']
+        style_pretty_name = callback_data['style_name']
         fast_dev_run = data["fast_dev_run"]
         for key in ("content_url", "style"):
             data.pop(key, None)
         await call_q.message.reply(
-            f"Selected style is {call_q.message.text}, performing the stylization...",
-            # reply_markup=types.ReplyKeyboardRemove(),
+            f"Selected style is {style_pretty_name}, performing the stylization...",
         )
 
         asyncio.create_task(
             apply_style_on_ml_backend(
-                call_q.message.chat.id, state, fast_dev_run, content_url, style_name
+                call_q.message.chat.id, state, fast_dev_run, content_url, style_code_name
             )
         )
 
