@@ -56,16 +56,16 @@ PROCESS_ACTION = "apply_plain_nst"
 style_factory = CallbackData("style", "action", "style_name")
 
 PLAIN_NST_ACTION = "plain_nst"
-PLAIN_NST_STYLE_NAME = "Multi-style NST, requires at least 1 image"
+PLAIN_NST_STYLE_NAME = "Multi-style NST: requires at least 1 style image"
 
 ALL_STYLES_DICT = {
     PLAIN_NST_STYLE_NAME: PLAIN_NST_ACTION,
-    "Cezanne": "style_cezanne",
-    "Ukiyoe": "style_ukiyoe",
-    "Monet": "style_monet",
-    "Vangogh": "style_vangogh",
-    "Summer2Winter": "summer2winter_yosemite",
-    "Winter2Summer": "winter2summer_yosemite",
+    "CycleGAN: Cezanne": "style_cezanne",
+    "CycleGAN: Ukiyoe": "style_ukiyoe",
+    "CycleGAN: Monet": "style_monet",
+    "CycleGAN: Vangogh": "style_vangogh",
+    "CycleGAN: Summer2Winter": "summer2winter_yosemite",
+    "CycleGAN: Winter2Summer": "winter2summer_yosemite",
 }
 
 READY_STYLE_ACTION_LIST = [
