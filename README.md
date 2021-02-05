@@ -17,6 +17,8 @@
    - The bot is implementation is based on [AIOGram](https://aiogram.dev/) fully asynchronous framework for Telegram Bot API. 
    - ML models run in a separate ML serving backend based on [Ray serve](https://docs.ray.io/en/master/serve/index.html) scalable model serving library built on [Ray](https://ray.io/). 
  
+ ![Telegram bot architecture](https://user-images.githubusercontent.com/4868370/107093369-2c7eaa80-6816-11eb-8f37-e1b9c8f55f47.png)
+ 
  ## Deployment
  The bot is deployed in [Heroku](www.heroku.com) cloud application platform. The ML server runs on-prem physical server and exposes its REST API endpoint to the bot via [NGINX](https://www.nginx.com/).
  
