@@ -38,13 +38,17 @@ dp.middleware.setup(LoggingMiddleware())
 
 class NSTInput(StatesGroup):
     waiting_for_content = State()
+    waiting_for_algo_select = State()
     waiting_for_style = State()
     waiting_for_additional_styles = State()
     waiting_for_output = State()
 
 
 all_style_markup = InlineKeyboardMarkup()
-plain_style_markup = InlineKeyboardMarkup()
+process_markup = InlineKeyboardMarkup()
+
+PROCESS_BUTTON_NAME = "Process"
+PROCESS_ACTION = "process"
 
 style_factory = CallbackData("style", "action", "style_name")
 
@@ -65,11 +69,13 @@ READY_STYLE_ACTION_LIST = [
     v for k, v in ALL_STYLES_DICT.items() if v != PLAIN_NST_ACTION
 ]
 
-plain_style_markup.add(
+cmd_factory = CallbackData("command", "action")
+
+process_markup.add(
     InlineKeyboardButton(
-        PLAIN_NST_STYLE_NAME,
+        PROCESS_BUTTON_NAME,
         callback_data=style_factory.new(
-            action=PLAIN_NST_ACTION, style_name=PLAIN_NST_STYLE_NAME
+            action=PROCESS_ACTION
         ),
     )
 )
@@ -113,6 +119,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
             what_was_done_str = "uploaded content image"
         elif current_state.endswith("waiting_for_additional_styles"):
             what_was_done_str = "uploaded content and style images"
+        elif current_state.endswith("waiting_for_algo_select"):
+            what_was_done_str = "selected stylization algorithm"
         else:
             what_was_done_str = "launched stylization"
         logging.info(current_state)
@@ -223,8 +231,7 @@ async def content_image_handler(message: types.Message, state: FSMContext):
         await NSTInput.next()
         await message.reply(
             (
-                "Please upload one or several images with styles to apply"
-                + " or choose one of ready-to-apply-styles from the keyboard"
+                "Please choose the styling algorithm from the list below"
             ),
             reply_markup=all_style_markup,
         )
@@ -263,7 +270,7 @@ async def wrong_content_handler(message: types.Message):
     state=[NSTInput.waiting_for_style, NSTInput.waiting_for_additional_styles],
     content_types=[ContentType.PHOTO, ContentType.DOCUMENT],
 )
-async def style_image_handler(message: types.Message, state: FSMContext):
+async def style_first_image_handler(message: types.Message, state: FSMContext):
     """
     Upload style image
     """
@@ -277,28 +284,36 @@ async def style_image_handler(message: types.Message, state: FSMContext):
         await message.reply(
             (
                 "Please upload more style images (for multi-style transfer)"
-                + f" or press {PLAIN_NST_STYLE_NAME}"
+                + f" or press {PROCESS_ACTION}"
                 + " command to perform stylization of the content image with"
                 + " the style images that are already chosen"
             ),
-            reply_markup=plain_style_markup,
+            reply_markup=process_markup,
         )
     else:
-        await message.reply(
-            (
-                "Please try again to upload one or several images with styles"
-                + " to apply or choose one of ready-to-apply-styles from"
-                + " the keyboard"
-            ),
-            reply_markup=all_style_markup,
-        )
+        current_state = state.get_state()
+        if current_state.endswith('waiting_for_style'):
+            await message.reply(
+                (
+                    "Please try again to upload one or several images with styles"
+                    + " to apply"
+                )
+            )
+        else:
+            await message.reply(
+                (
+                    "Please try again to upload one or several images with styles"
+                    + f" to apply or press {PROCESS_ACTION}",
+                ),
+                reply_markup=process_markup
+            )
 
 
 @dp.callback_query_handler(
     style_factory.filter(action=READY_STYLE_ACTION_LIST),
-    state=NSTInput.waiting_for_style,
+    state=NSTInput.waiting_for_algo_select,
 )
-async def style_name_handler(
+async def ready_style_selected_handler(
     call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
 ):
     """
@@ -327,13 +342,23 @@ async def style_name_handler(
         )
 
 
+@dp.callback_query_handler(
+    style_factory.filter(action=PLAIN_NST_ACTION),
+    state=NSTInput.waiting_for_algo_select,
+)
+async def plain_nst_algo_selected_handler(
+    call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
+):
+    bot.send_message(call_q.from_user.id, "Please upload one or more (for multi-style transfer) images")
+    NSTInput.next()
+
+
 async def print_please_upload_styles(prefix, message):
     await message.reply(
         (
             prefix
             + " please try again to upload one or several images"
-            + " with styles to apply or choose one of ready-to-apply-styles"
-            + " from the keyboard"
+            + " with styles to apply"
         )
     )
 
@@ -357,7 +382,7 @@ async def wrong_style_other_handler(message: types.Message):
 # @dp.message_handler(state=NSTInput.waiting_for_additional_styles, commands="process")
 # async def cmd_process(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(
-    style_factory.filter(action=PLAIN_NST_ACTION), state=NSTInput.waiting_for_style
+    cmd_factory.filter(action=PROCESS_ACTION), state=NSTInput.waiting_for_additional_styles
 )
 async def style_name_handler(
     call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
@@ -369,7 +394,7 @@ async def style_name_handler(
         fast_dev_run = data["fast_dev_run"]
         for key in ("content_url", "style"):
             data.pop(key, None)
-        await message.reply(
+        await call_q.message.reply(
             (
                 "Performing the stylization based on"
                 + f" {len(style_url_list)} style image(s)..."
@@ -377,11 +402,11 @@ async def style_name_handler(
         )
         asyncio.create_task(
             apply_style_on_ml_backend(
-                message.chat.id,
+                call_q.message.chat.id,
                 state,
                 fast_dev_run,
                 content_url,
-                "plain_nst",
+                PLAIN_NST_ACTION,
                 style_url_list=style_url_list,
             )
         )
