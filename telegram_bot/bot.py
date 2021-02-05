@@ -349,8 +349,8 @@ async def ready_style_selected_handler(
 async def plain_nst_algo_selected_handler(
     call_q: types.CallbackQuery, callback_data: typing.Dict[str, str], state: FSMContext
 ):
-    bot.send_message(call_q.from_user.id, "Please upload one or more (for multi-style transfer) images")
-    NSTInput.next()
+    await bot.send_message(call_q.from_user.id, "Please upload one or more (for multi-style transfer) images")
+    await NSTInput.next()
 
 
 async def print_please_upload_styles(prefix, message):
