@@ -21,7 +21,7 @@
  The bot uses Finite State Machine with in-memory storage to keep the running costs low. Some cloud providers, like Heroku, can put the container running the but to sleep after some period of inactivity (30 mintues for Heroku). This causes the bot to lose its in-memory state after sleep. This is not critical however, as the state information is not critical since the bot can always wake up in the initial state without making the user experience much worse. When the bot looses its state it notifies a user about it asking for a content image regardless of what happened before the period of inactivity.
  
  ### Automatic image resizing
- The high-resolution images are scaled down before they are processed by NST models. As the result the styled (output) usually has lower resolution comparing to the input image. This is a necessary evil which allows for faster NST and lose GPU memory requirements.
+ The high-resolution images are scaled down before they are processed by NST models. As the result the styled (output) usually has lower resolution comparing to the input image. This is a necessary evil which allows for faster NST and lower GPU memory requirements.
  
   
  ## Architecture
@@ -48,7 +48,7 @@
  https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md
   
   ### ML server
- - The ML server runs on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) subfolder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro).
+ - The ML server runs on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) subfolder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro Linux).
  
  ## References
  <a id="1">[1]</a> 
