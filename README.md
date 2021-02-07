@@ -43,10 +43,12 @@
  
  ## Deployment
  ### Telegram bot
-  The bot is deployed in [Heroku](www.heroku.com) cloud application platform with a free (personal) plan.
+ The bot is deployed in [Heroku](www.heroku.com) cloud application platform with a free (personal) plan. 
+ 
+ https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md
   
   ### ML server
- - The ML server runs on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.
+ - The ML server runs on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) subfolder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro).
  
  ## References
  <a id="1">[1]</a> 
