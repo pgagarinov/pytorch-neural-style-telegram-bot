@@ -7,7 +7,7 @@
 ### Two style transfer models
  #### Multi-style NST
  A multi-style version of NST capable of transferring style from multiple source images (with equal weights by default). The styled image is found via training the Deep Neural Network match the styled of the found (styled) image to the style of the style source image as closely as possible (without deviating from the content image in terms of content). The implementation is based on [PyTorch Hyperlight](https://github.com/pgagarinov/pytorch-hyperlight) micro ML framework and uses the algorithm from "A Neural Algorithm of Artistic Style" [[1]](#1) paper with a few modifications:
-  - style can be transferred from an arbitrary number of images, not just one
+  - style can be transferred from an arbitrary number of style source images (giving equal weights to each style), not just one
   - different layers of VGG19 are used for more realistic style transfer
   - an early stopping is used for choosing the number of epochs automatically
 
