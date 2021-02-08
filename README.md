@@ -46,7 +46,11 @@
  ## Deployment
  ### Telegram bot
  The bot can be deployed in both cloud and physical environments. The following deployment scenarious were tested:
-  - Cloud deployment on [Heroku](www.heroku.com) cloud application platform as well as. [telegram_bot](/telegram_bot) folder of this repo contains all necessary files for Heroku deployment. When pushing the source code to Heroku repo for deployment make sure to push only [telegram_bot](telegram_bot) subfolder via running `git push heroku `git subtree split --prefix telegram_bot main`:master` (otherwise you would push the whole repo and Heroku won't find the files necessary for deployment). Please refer to [Heroku: getting started with Python](https://devcenter.heroku.com/articles/getting-started-with-python) for details. 
+  - Cloud deployment on [Heroku](www.heroku.com) cloud application platform as well as. [telegram_bot](/telegram_bot) folder of this repo contains all necessary files for Heroku deployment. When pushing the source code to Heroku repo for deployment make sure to push only [telegram_bot](telegram_bot) subfolder via running 
+  ```bash
+  git push heroku `git subtree split --prefix telegram_bot main`:master
+  ```
+  (otherwise you would push the whole repo and Heroku won't find the files necessary for deployment). Please refer to [Heroku: getting started with Python](https://devcenter.heroku.com/articles/getting-started-with-python) for details. 
   - On-prem deployment via exposing the bot's webhook URL to Telegram via NGINX.
  
  https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md
