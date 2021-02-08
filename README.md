@@ -110,7 +110,8 @@ The ML server doesn't have any configuraiton parameters and always uses port 800
 [Ray Serve: Advanced Topics and Configurations](https://docs.ray.io/en/master/serve/advanced.html#scaling-out)
 
 <a id="5">[5]</a> 
-[PyTorch Hyperlight: The ML micro-framework built as a thin wrapper around PyTorch-Lightning and Ray Tune frameworks to push the boundaries of simplicity even further](https://github.com/pgagarinov/pytorch-hyperlight)
+[AIOGram: the modern and fully asynchronous framework for Telegram Bot API written in Python](https://aiogram.dev/)
 
 <a id="6">[6]</a> 
-[AIOGram: the modern and fully asynchronous framework for Telegram Bot API written in Python](https://aiogram.dev/)
+[PyTorch Hyperlight: The ML micro-framework built as a thin wrapper around PyTorch-Lightning and Ray Tune frameworks to push the boundaries of simplicity even further](https://github.com/pgagarinov/pytorch-hyperlight)
+
