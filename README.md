@@ -68,8 +68,8 @@ The bot expects the following groups of environment variables to be defined
 #### ML settings
 - `ML_SERVER_HOST_ADDR` - URL of ML server endpoint exposed to the bot
 - `DEFAULT_FAST_DEV_RUN` - can take "True"/"False" values; enables a faster regime for ML models (with a limited number of training epochs and less number of batches in an epoch) for debugging purposes
-
- 
+### ML server
+The ML server doesn't have any configuraiton parameters and always uses port 8000 for its endpoint. The AWS credentials are expected to be defined in either `~/.aws/config` and `~/.aws/credentials` files or in `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` environment variables (see [Environment variables to configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) for more details).
  
  ## Deployment
  ### Telegram bot
