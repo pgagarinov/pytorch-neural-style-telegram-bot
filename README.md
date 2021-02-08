@@ -45,12 +45,14 @@
  
  ## Deployment
  ### Telegram bot
- The bot is deployed in [Heroku](www.heroku.com) cloud application platform with a free (personal) plan. 
+ The bot can be deployed in both cloud and physical environments. The following deployment scenarious were tested:
+  - Cloud deployment on [Heroku](www.heroku.com) cloud application platform as well as. [telegram_bot](/telegram_bot) folder of this repo contains all necessary files for Heroku deployment. When pushing the source code to Heroku repo for deployment make sure to push only [telegram_bot](telegram_bot) subfolder via running `git push heroku `git subtree split --prefix telegram_bot main`:master` (otherwise you would push the whole repo and Heroku won't find the files necessary for deployment). Please refer to [Heroku: getting started with Python](https://devcenter.heroku.com/articles/getting-started-with-python) for details. 
+  - On-prem deployment via exposing the bot's webhook URL to Telegram via NGINX.
  
  https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md
   
   ### ML server
- - The ML server runs on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) subfolder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro Linux).
+ - The ML server was tested on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) folder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro Linux). 
  
  ## References
  <a id="1">[1]</a> 
