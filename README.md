@@ -39,7 +39,10 @@ The high level architecture is show below.
 <img src="https://user-images.githubusercontent.com/4868370/107093369-2c7eaa80-6816-11eb-8f37-e1b9c8f55f47.png" width="500">
 
 ### Telegram bot
-The bot is implementation is based on [AIOGram](https://aiogram.dev/) fully asynchronous framework for Telegram Bot API. [AIOGram Finite State Machine (FSM)](https://docs.aiogram.dev/en/latest/examples/finite_state_machine_example.html) is used to improve the source code structure. FSM uses in-memory storage to keep the running costs minimal. The in-memory storage can be easily replaced with either Redis, RethinkDB, MongoDB (see https://docs.aiogram.dev/en/latest/dispatcher/fsm.html) if needed.
+The bot implementation is based on [AIOGram](https://aiogram.dev/) fully asynchronous framework for Telegram Bot API. The following features of AIOGram 2.x and [Telegram Bot API 2.0](https://core.telegram.org/bots/2-0-intro) are used:
+ - [AIOGram Finite State Machine (FSM)](https://docs.aiogram.dev/en/latest/examples/finite_state_machine_example.html) with in-memory storage is used to improve the source code structure while keeping the running costs minimal. The in-memory storage can be easily replaced with either Redis, RethinkDB, MongoDB (see https://docs.aiogram.dev/en/latest/dispatcher/fsm.html) if needed.
+ - [Inline Keyboards](https://docs.aiogram.dev/en/latest/telegram/types/inline_keyboard.html)
+ - [Callbacks](https://dev-docs.aiogram.dev/api/types/callback_query/)
  
 ### ML server
 ML models run in a separate ML serving backend based on [Ray Serve](https://docs.ray.io/en/master/serve/index.html) scalable model serving library built on [Ray](https://ray.io/). ML server receives the image processing requests via REST API from the bot and forwards them to Jupyter notebooks via [Papermill](https://github.com/nteract/papermill) library. Each notebook is responsible for a model-specific ML image processing pipeline.  Each of the notebooks contains an ML model-specific image processing pipeline and can be found [here](https://github.com/pgagarinov/dls-style-telegram-bot/tree/main/ml_server). The notebooks have a direct access to S3 cloud, they download images from S3 and upload the processed images back to S3. ML server tracks the execution of the notebooks via [Papermill](https://github.com/nteract/papermill) and uploads the executed notebooks to S3 bucket upon completion. The failed notebooks are kept in S3 for easier debugging (intil S3's built-in retention removes them).
@@ -69,7 +72,7 @@ The bot expects the following groups of environment variables to be defined
 - `ML_SERVER_HOST_ADDR` - URL of ML server endpoint exposed to the bot
 - `DEFAULT_FAST_DEV_RUN` - can take "True"/"False" values; enables a faster regime for ML models (with a limited number of training epochs and less number of batches in an epoch) for debugging purposes
 ### ML server
-The ML server doesn't have any configuraiton parameters and always uses port 8000 for its endpoint. The AWS credentials are expected to be defined in either `~/.aws/config` and `~/.aws/credentials` files or in `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` environment variables (see [Environment variables to configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) for more details).
+The ML server doesn't have any configuraiton parameters and always uses port 8000 for its endpoint. The AWS credentials are expected to be defined in either `~/.aws/config` and `~/.aws/credentials` files or in `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` environment variables (see [Environment variables to configure the AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html) for more details). By default the ML server uses a single backend replica but can be easily scaled out (see [[4]](#4))
  
  ## Deployment
  ### Telegram bot
@@ -102,3 +105,12 @@ The ML server doesn't have any configuraiton parameters and always uses port 800
   Isola, Phillip and Zhu, Jun-Yan and Zhou, Tinghui and Efros, Alexei A,
   Computer Vision and Pattern Recognition (CVPR), 2017 IEEE Conference on,
   2017
+  
+ <a id="4">[4]</a> 
+[Ray Serve: Advanced Topics and Configurations](https://docs.ray.io/en/master/serve/advanced.html#scaling-out)
+
+<a id="5">[5]</a> 
+[PyTorch Hyperlight](https://github.com/pgagarinov/pytorch-hyperlight)
+
+<a id="6">[6]</a> 
+[AIOGram: a modern and fully asynchronous framework for Telegram Bot API written in Python](https://aiogram.dev/)
