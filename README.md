@@ -6,7 +6,13 @@
 
 ### Two style transfer models
  #### Multi-style NST
- A multi-style version of NST capable of transferring style from multiple source images (with equal weights by default). The original plain NST algorithm [[1]](#1) has been modified to transfer styles from multiple images, the implementation uses [PyTorch Hyperlight](https://github.com/pgagarinov/pytorch-hyperlight) micro ML framework. Please refer to this [Multi-style NST Jupyter notebook](https://github.com/pgagarinov/dls-style-telegram-bot/blob/main/ml_server/plain_simple_nst.ipynb) for implementation details.
+ A multi-style version of NST capable of transferring style from multiple source images (with equal weights by default). The styled image is found via training the Deep Neural Network match the styled of the found (styled) image to the style of the style source image as closely as possible (without deviating from the content image in terms of content). The implementation is based on [PyTorch Hyperlight](https://github.com/pgagarinov/pytorch-hyperlight) micro ML framework and uses the algorithm from "A Neural Algorithm of Artistic Style" [[1]](#1) paper with a few modifications:
+  - style can be transferred from an arbitrary number of images, not just one
+  - different layers of VGG19 are used for more realistic style transfer
+  - an early stopping is used for choosing the number of epochs automatically
+
+Please refer to this [Multi-style NST Jupyter notebook](https://github.com/pgagarinov/dls-style-telegram-bot/blob/main/ml_server/plain_simple_nst.ipynb) for more details.
+
  
 #### Pretrained CycleGAN-based NST
 - Pretrained CycleGan-based NST for the following styles:
@@ -53,9 +59,9 @@ The bot expects the following groups of environment variables to be defined
 #### S3 integration settings
 - `S3_BUCKET_WITH_RESULTS_NAME` - S3 bucket name
 - `S3_RESULTS_PREFIX` - S3 bucket folder name
-- `AWS_ACCESS_KEY_ID` - [Amazon access key id](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys
-- `AWS_SECRET_ACCESS_KEY` - [Amazon access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys
-- `REGION_NAME` - [Amazon Region](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-regions)
+- `AWS_ACCESS_KEY_ID` - [AWS access key id](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
+- `AWS_SECRET_ACCESS_KEY` - [AWS access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
+- `REGION_NAME` - [AWS region name](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html#concepts-regions)
 
  
 #### ML settings
