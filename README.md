@@ -1,4 +1,4 @@
-# DLSchool Telegram bot for Neural Style Transfer
+# Telegram bot for Neural Style Transfer
 
 <img width="500px" src="https://user-images.githubusercontent.com/4868370/107161449-d5abd900-69ad-11eb-80cf-af107cb81c0c.gif">
 
