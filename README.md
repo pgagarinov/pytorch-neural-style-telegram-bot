@@ -56,8 +56,11 @@
  https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md
   
   ### ML server
- - The ML server was tested on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) folder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro Linux). 
- 
+  Tested deployment scenarious:
+  - On-prem deployment on a physical Linux (Manjaro Linux) server with GeForce GTX 970 4Gb GPU.  [ml_server](/ml_server) folder of this repo contains bash scripts for running the server via [GNU Screen](https://www.man7.org/linux/man-pages/man1/screen.1.html) utility from under specified conda environment. Conda environment expects to contain all necessary dependencies which can either be installed via `pip install -r ./requirements.txt` or via following the instructions from [PyTorch HyperLight ML Development Environment](https://github.com/pgagarinov/pytorch-hyperlight/blob/main/products/jupyterlab-ml-devenv/README.md) project. The latter assumes you run Arch Linux or its derivative (like Manjaro Linux). 
+  
+  - Cloud deployment via [Amazon Sagemaker Python SDK](https://sagemaker.readthedocs.io/en/stable/) with GPU-powered ml.p2.xlarge instance and PyTorch 1.5. In this scenario only a limited functionality of ML server (CycleGANs only) is available as the multi-style NST implementation used by ML server requires at least PyTorch 1.7. At the time of writing this  the most recent version of PyTorch supported by the pre-build Amazon Sagemaker containers is 1.6. Amazon has recently released a [deep learning container for PyTorch 1.7.1](https://github.com/aws/deep-learning-containers/releases/tag/v1.0-pt-1.7.1-tr-py36) but at the time of writing this the container is not yet available in Sagemaker Python SDK. The PyTorch 1.5 container was used for testing instead of PyTorch 1.6 container because the latter behaved less stably. 
+     
  ## References
  <a id="1">[1]</a> 
  "A Neural Algorithm of Artistic Style", Gatys, Leon A.; Ecker, Alexander S.; Bethge, Matthias, 2015, [arXiv:1508.06576](https://arxiv.org/abs/1508.06576) 
